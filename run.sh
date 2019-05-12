@@ -4,7 +4,7 @@ set -e
 
 ##### Please edit this section to fit your experiment setting
 
-DATA_PATH=/crimea/ckbjimmy/project/p2c/generated/di # corpus path (source corpus named as `pro` and target corpus as `con`)
+DATA_PATH=          # corpus path (source corpus named as `pro` and target corpus as `con`)
 EMB_DIM=300         # dimension of the professional (pro) and consumer (con) word embeddings
 SUBWORD=false       # whether to use subword information when training monolingual word embeddings
 USE_NEWSCRAWL=false # whether to use third-party large-scale corpora for training con LM
@@ -45,7 +45,6 @@ if [ ! -d "$MUSE_PATH" ]; then
   echo "Cloning MUSE from GitHub repository..."
   git clone https://github.com/facebookresearch/MUSE.git
   cd $MUSE_PATH/data/
-  ./get_evaluation.sh
 fi
 echo "MUSE found in: $MUSE_PATH"
 

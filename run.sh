@@ -16,16 +16,19 @@ SENT_BT=100000      # monolingual data used in back-translation
 
 ##### No need to edit the following sections for default setting
 
-WD=$(pwd)
-TRAIN_PATH=$WD/res/$RESULT_DIR # main path of the experiment
+ROOT=$(pwd)
+WD=$ROOT/tools
+TRAIN_PATH=$ROOT/res/$RESULT_DIR # main path of the experiment
 
 # create paths
-mkdir -p $DATA_PATH
+mkdir -p $WD
 mkdir -p $TRAIN_PATH
 
 # --- Download and install tools
+cd $WD
+
 # fastText
-FASTTEXT_EXE=./fastText-0.2.0/fasttext
+FASTTEXT_EXE=$WD/fastText-0.2.0/fasttext
 
 if [ ! -f "$FASTTEXT_EXE" ]; then
   echo "Installing fastText from source..."
@@ -33,8 +36,8 @@ if [ ! -f "$FASTTEXT_EXE" ]; then
   unzip v0.2.0.zip
   cd fastText-0.2.0
   make
-  rm ../v0.2.0.zip
-  cd ..
+  cd ../
+  rm v0.2.0.zip
 fi
 echo "fastText found in: $FASTTEXT_EXE"
 
@@ -44,7 +47,6 @@ MUSE_PATH=$WD/MUSE
 if [ ! -d "$MUSE_PATH" ]; then
   echo "Cloning MUSE from GitHub repository..."
   git clone https://github.com/facebookresearch/MUSE.git
-  cd $MUSE_PATH/data/
 fi
 echo "MUSE found in: $MUSE_PATH"
 
@@ -66,6 +68,8 @@ if [ ! -d "$MOSES_PATH" ]; then
   tar -zxvf ubuntu-17.04.tgz
 fi
 echo "MOSES found in: $MOSES_PATH"
+
+cd $ROOT
 
 TOKENIZER=$MOSES_PATH/scripts/tokenizer/tokenizer.perl
 NORM_PUNC=$MOSES_PATH/scripts/tokenizer/normalize-punctuation.perl
@@ -252,7 +256,7 @@ if [[ $IDENTICAL_CHAR = true ]]; then
     --src_emb $EMB_SRC \
     --tgt_emb $EMB_TGT \
     --n_refinement 5 --dico_train identical_char --export "pth" \
-    --dico_eval $WD/data/cd_pairs.txt
+    --dico_eval $ROOT/data/cd_pairs.txt
   fi
 else
   if ! [[ -f "$ALIGNED_EMBEDDINGS_SRC" && -f "$ALIGNED_EMBEDDINGS_TGT" ]]; then
@@ -264,7 +268,7 @@ else
     --src_emb $EMB_SRC \
     --tgt_emb $EMB_TGT \
     --n_refinement 5 --export "pth" \
-    --dico_eval $WD/data/cd_pairs.txt
+    --dico_eval $ROOT/data/cd_pairs.txt
   fi
 fi
 
@@ -331,7 +335,7 @@ cp ${CONFIG_PATH} $TRAIN_DIR_ITER_FORWARD/model/moses.ini
 echo "Linking phrase-table path..."
 ln -sf $PHRASE_TABLE_PATH $TRAIN_DIR_ITER_FORWARD/model/phrase-table.gz
 
-for epoch in {1..2}; do
+for epoch in {1..3}; do
   
   echo "Iteration", ${epoch}
 
@@ -352,7 +356,7 @@ for epoch in {1..2}; do
   echo "Train Moses Backward"
   $TRAIN_MODEL -root-dir $TRAIN_DIR_ITER_BACKWARD -corpus ${TRAIN_DIR_ITER_BACKWARD}/corpus/src.sample.${SENT_BT}.${epoch} \
   -f tgt -e src -alignment grow-diag-final-and -reordering msd-bidirectional-fe \
-  -lm 0:5:$SRC_LM_BLM:8 -external-bin-dir $UMT_PATH/moses/training-tools -mgiza \
+  -lm 0:5:$SRC_LM_BLM:8 -external-bin-dir $MOSES_PATH/../training-tools -mgiza \
   -cores $N_THREADS -max-phrase-length=4 -score-options "--NoLex" -first-step=1 -last-step=9
   
   echo "Removing lexical reordering features ..."
@@ -376,7 +380,7 @@ for epoch in {1..2}; do
   echo "Train Moses Forward"
   $TRAIN_MODEL -root-dir $TRAIN_DIR_ITER_FORWARD -corpus $TRAIN_DIR_ITER_FORWARD/corpus/tgt.sample.${SENT_BT}.${epoch} \
   -f src -e tgt -alignment grow-diag-final-and -reordering msd-bidirectional-fe \
-  -lm 0:5:$TGT_LM_BLM:8 -external-bin-dir $UMT_PATH/moses/training-tools -mgiza \
+  -lm 0:5:$TGT_LM_BLM:8 -external-bin-dir $MOSES_PATH/../training-tools -mgiza \
   -cores $N_THREADS -max-phrase-length=4 -score-options "--NoLex" -first-step=1 -last-step=9
   
   echo "Removing lexical reordering features ..."

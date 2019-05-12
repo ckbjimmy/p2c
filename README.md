@@ -14,7 +14,7 @@ This repository contains the codes for the clinical language translation task us
 - PyTorch
 - [Moses](http://www.statmt.org/moses/?n=moses.releases) (for text tokenization, statistical machine translation and back-translation---we suggest to use binary version to prevent complicated compiling process, the version use in the current code is for Ubuntu 17.04+)
 - [fastText](https://github.com/facebookresearch/fastText) (for learning word embeddings)
-- [MUSE] (for learning bilingual dictionary induction)
+- [MUSE](https://github.com/facebookresearch/muse) (for learning bilingual dictionary induction)
 
 ### Quick Start
 1. Prepare your corpora in source (`pro`) and target (`con`) languages
